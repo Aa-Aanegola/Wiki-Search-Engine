@@ -26,11 +26,35 @@ class CleanerChunker:
         return ret
     
     def get_body(self, text):
-        return self.clean(re.sub(r'\{\{[^\}]*\}\}', r' ', text))
+        body = []
+        prev = 0
+        for info in re.finditer(r'\{\{\ *infobox', text):
+            body.append(text[prev:info.start()])
+            i = info.start()+2
+            bracks = 2
+            while bracks != 0 and i < len(text):
+                if text[i] == '{':
+                    bracks += 1
+                elif text[i] == '}':
+                    bracks -= 1
+                i += 1
+            prev = i
+        body.append(text[prev:])
+        return self.clean(' '.join(body))
     
     def get_infobox(self, text):
-        ret = re.findall(r'\{\{infobox([^\}]*)\}\}', re.sub('\n', ' ', text))
-        return self.clean(' '.join(ret))
+        infoboxes = []
+        for info in re.finditer(r'\{\{\ *infobox', text):
+            i = info.start()+2
+            bracks = 2
+            while bracks != 0 and i < len(text):
+                if text[i] == '{':
+                    bracks += 1
+                elif text[i] == '}':
+                    bracks -= 1
+                i += 1
+            infoboxes.append(text[info.start():i])
+        return self.clean(' '.join(infoboxes))
     
     def get_references(self, text):
         res = []

@@ -1,16 +1,16 @@
 import time
 import xml.sax as sx
-from utils import *
+from cleaner import *
 from collections import defaultdict
 
 class Handler(sx.ContentHandler):
     def __init__(self):
-        self.title = ''
-        self.body = ''
+        self.title = []
+        self.body = []
         self.current = ''
         self.id = None
         self.cleaner = CleanerChunker()
-        self.printed = 10
+        #self.printed = 10
         self.pages = 0
         self.inv_index = defaultdict(list)
         self.page_ind = defaultdict(int)
@@ -53,9 +53,8 @@ class Handler(sx.ContentHandler):
         
     def endElement(self, tag):
         if tag == 'page':# and self.printed:
-            #print(self.id)
-            #print(self.title)
-            #print(self.body)
+            self.body = ' '.join(self.body)
+            self.title = ' '.join(self.title)
 
             body, infobox, cat, ref, links = self.cleaner.chunk(self.body)
             title = self.cleaner.clean(self.title)
@@ -66,24 +65,24 @@ class Handler(sx.ContentHandler):
             self.pages += 1
             self.add_page(page=page)
             
-            self.title = ''
-            self.body = ''
+            self.title = []
+            self.body = []
             self.id = None
-            self.printed -= 1
+            #self.printed -= 1
         
             if self.pages % 1000 == 0:
                 print(f"Successfully parsed {self.pages} pages", end="\r")
-        
         if tag == 'mediawiki':
+        
             self.add_page(force_write=True)
         
     def characters(self, content):
         if self.current == 'id' and not self.id:
             self.id = int(content)
         elif self.current == 'text':
-            self.body += content
+            self.body.append(content)
         elif self.current == 'title':
-            self.title += content
+            self.title.append(content)
         
     def get_file_count(self):
         return int((self.pages+9999)/10000)
