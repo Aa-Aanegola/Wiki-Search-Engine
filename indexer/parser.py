@@ -14,6 +14,7 @@ class Handler(sx.ContentHandler):
         self.pages = 0
         self.inv_index = defaultdict(list)
         self.page_ind = defaultdict()
+        self.wordset = set()
 
     def add_page(self, page=None, force_write=False):
         if page:
@@ -45,7 +46,16 @@ class Handler(sx.ContentHandler):
             f.write(file)
             self.inv_index.clear()
                 
-                
+    def count_words(self, page, title):
+        page_ls = page.lower().split()
+        title_ls = title.lower().split()
+        for word in page_ls:
+            self.wordset.add(word)
+        for word in title_ls:
+            self.wordset.add(word)
+            
+    def get_word_count(self):
+        return len(self.wordset)
 
     def startElement(self, tag, attributes):
         self.current = tag
@@ -60,6 +70,8 @@ class Handler(sx.ContentHandler):
 
             page = {"title":title, "body":body, "infobox":infobox, 
                     "categories":cat, "references":ref, "links":links}
+            
+            self.count_words(self.body, self.title)
             
             self.pages += 1
             self.add_page(page=page)
