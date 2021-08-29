@@ -81,7 +81,7 @@ class Merger:
         count = 0
         fp = open('./inverted_index/master_index.txt', "r")
         out = open(f'./{self.index_dir}/invindex{current}.txt', "w")
-        ends = open(f'./{self.index_dir}library.txt', "w")
+        ends = open(f'./{self.index_dir}/library.txt', "w")
         stat = open(f'./invertedindex_stat.txt', 'a')
         total_count = 0
         while not fp.closed:
