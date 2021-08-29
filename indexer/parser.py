@@ -13,7 +13,7 @@ class Handler(sx.ContentHandler):
         #self.printed = 10
         self.pages = 0
         self.inv_index = defaultdict(list)
-        self.page_ind = defaultdict(int)
+        self.page_ind = defaultdict()
 
     def add_page(self, page=None, force_write=False):
         if page:
@@ -28,7 +28,6 @@ class Handler(sx.ContentHandler):
                     words.add(word)
                 ind[keys[c]] = temp
                 c += 1
-            
             self.page_ind[self.pages] = self.id
             
             for word in words:
@@ -73,12 +72,11 @@ class Handler(sx.ContentHandler):
             if self.pages % 1000 == 0:
                 print(f"Successfully parsed {self.pages} pages", end="\r")
         if tag == 'mediawiki':
-        
             self.add_page(force_write=True)
         
     def characters(self, content):
         if self.current == 'id' and not self.id:
-            self.id = int(content)
+            self.id = content
         elif self.current == 'text':
             self.body.append(content)
         elif self.current == 'title':

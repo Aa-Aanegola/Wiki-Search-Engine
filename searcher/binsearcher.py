@@ -26,18 +26,15 @@ class BinSearcher:
                 break
             i += 1
         index_file = open(f'{self.index_dir}/invindex{i+1}.txt', 'r')
-        offset_file = open(f'{self.index_dir}/offset{i+1}.txt', 'r')
-        offsets = offset_file.read().split()
-        offset_file.close()
+        index = [line.strip().split() for line in index_file.readlines()]
+        index_file.close()
         
         l = 0 
-        r = len(offsets)-1
+        r = len(index)-1
         
-        while l < r:
+        while l <= r:
             mid = int((l+r)/2)
-            offset = int(offsets[mid])
-            index_file.seek(offset)
-            line = index_file.readline().strip().split()
+            line = index[mid]
             if line[0] == token:
                 return line[1:]
             elif line[0] < token:
@@ -50,7 +47,7 @@ class BinSearcher:
         master = {}
         for token in map.keys():
             temp = {}
-            ids = [re.sub(r'([0-9]*).*', r'\1', word) for word in map[token]]
+            ids = [int(re.sub(r'([0-9]*).*', r'\1', word)) for word in map[token]]
             for label in ['t', 'b', 'i', 'c', 'r', 'l']:
                 dat = [re.sub(r'.*%c([0-9]*).*' % label, r'\1', word) for word in map[token]]
                 for i in range(len(dat)):
