@@ -11,7 +11,7 @@ class Merger:
     def merge_files(self, file1, file2):
         fp1 = open(file1, "r")
         fp2 = open(file2, "r")
-        out = open(f'./inverted_index/index{self.cur_count}.txt', "w")
+        out = open(f'{self.index_dir}/index{self.cur_count}.txt', "w")
         line1 = []
         line2 = []
         while not fp1.closed and not fp2.closed:
@@ -57,10 +57,10 @@ class Merger:
         
         out.close()
 
-        return f'./inverted_index/index{self.cur_count}.txt'
+        return f'{self.index_dir}/index{self.cur_count}.txt'
             
     def create_index(self):
-        files = [f'./inverted_index/index{i+1}.txt' for i in range(self.inv_ind_count)]
+        files = [f'{self.index_dir}/index{i+1}.txt' for i in range(self.inv_ind_count)]
         
         while len(files) > 1:
             print(f"Merging {len(files)} files", end='\r')
@@ -74,14 +74,14 @@ class Merger:
         
         self.cur_count -= 1
         for i in range(1, self.cur_count):
-            os.remove(f'./inverted_index/index{i}.txt')
-        os.rename(f'./inverted_index/index{self.cur_count}.txt', f'./inverted_index/master_index.txt')
+            os.remove(f'{self.index_dir}/index{i}.txt')
+        os.rename(f'{self.index_dir}/index{self.cur_count}.txt', f'{self.index_dir}/master_index.txt')
         
         current = 1
         count = 0
-        fp = open('./inverted_index/master_index.txt', "r")
-        out = open(f'./{self.index_dir}/invindex{current}.txt', "w")
-        ends = open(f'./{self.index_dir}/library.txt', "w")
+        fp = open(f'{self.index_dir}/master_index.txt', "r")
+        out = open(f'{self.index_dir}/invindex{current}.txt', "w")
+        ends = open(f'{self.index_dir}/library.txt', "w")
         stat = open(f'./invertedindex_stat.txt', 'a')
         total_count = 0
         while not fp.closed:
@@ -97,11 +97,11 @@ class Merger:
                 ends.write(word1 + '\n')
                 out.close()
                 current += 1
-                out = open(f'./{self.index_dir}/invindex{current}.txt', "w")
+                out = open(f'{self.index_dir}/invindex{current}.txt', "w")
         
         total_count += count % 100000
         total_count = str(total_count) + '\n'
         stat.write(total_count)
         ends.close()
         fp.close()
-        os.remove('./inverted_index/master_index.txt')
+        os.remove(f'{self.index_dir}/master_index.txt')

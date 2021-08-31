@@ -4,7 +4,7 @@ from cleaner import *
 from collections import defaultdict
 
 class Handler(sx.ContentHandler):
-    def __init__(self):
+    def __init__(self, index_dir):
         self.title = []
         self.body = []
         self.current = ''
@@ -15,6 +15,7 @@ class Handler(sx.ContentHandler):
         self.inv_index = defaultdict(list)
         self.page_ind = defaultdict()
         self.wordset = set()
+        self.index_dir = index_dir
 
     def add_page(self, page=None, force_write=False):
         if page:
@@ -42,7 +43,7 @@ class Handler(sx.ContentHandler):
             for key in sorted(self.inv_index.keys()):
                 data = key + ' ' + ' '.join(self.inv_index[key]) + '\n'
                 file += data
-            f = open(f'./inverted_index/index{int((self.pages+9999)/10000)}.txt', "w")
+            f = open(f'{self.index_dir}/index{int((self.pages+9999)/10000)}.txt', "w")
             f.write(file)
             self.inv_index.clear()
                 

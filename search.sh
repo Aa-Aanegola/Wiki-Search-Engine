@@ -1,1 +1,1 @@
-python3 searcher/searcher.py $1 $2
+python3 searcher/searcher.py "$1" "$2"

@@ -7,12 +7,12 @@ import time
 
 dc = sys.argv[1]
 parser = sx.make_parser()
-handler = Handler()
+handler = Handler(sys.argv[2])
 parser.setContentHandler(handler)
 
 st = time.time()
-if not os.path.isdir('./inverted_index'):
-    os.mkdir('./inverted_index')
+if not os.path.isdir(f'{sys.argv[2]}'):
+    os.mkdir(f'{sys.argv[2]}')
 print("Currently parsing...")
 parser.parse(dc)
 stat = open('./invertedindex_stat.txt', "w")
