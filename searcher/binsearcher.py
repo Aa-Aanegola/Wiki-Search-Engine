@@ -14,6 +14,7 @@ class BinSearcher:
     def get_word(self, token):
         if len(token) > 2 and token[1] == ':':
             return token[2:]
+        return token
         
     def get_list(self, token):
         if len(token) > 2 and token[1] == ':':
