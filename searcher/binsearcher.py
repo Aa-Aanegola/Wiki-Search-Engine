@@ -11,6 +11,10 @@ class BinSearcher:
         f.close()  
         self.expand = {'t':'title', 'b':'body', 'i':'infobox', 'c':'categories', 'r':'references', 'l':'links'}
         
+    def get_word(self, token):
+        if len(token) > 2 and token[1] == ':':
+            return token[2:]
+        
     def get_list(self, token):
         if len(token) > 2 and token[1] == ':':
             token = token[2:]
@@ -66,6 +70,6 @@ class BinSearcher:
         tokens = search_str.split()
         map = defaultdict(list)
         for token in tokens:
-            map[token] = self.get_list(token)
+            map[self.get_word(token)] = self.get_list(token)
         
         self.clean_map(map)
