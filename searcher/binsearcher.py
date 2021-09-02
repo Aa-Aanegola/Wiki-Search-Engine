@@ -23,7 +23,6 @@ class BinSearcher:
         token = self.cleaner.clean(token)
         if not len(token):
             return []
-        token = token[0]
         
         i = 0
         while i < len(self.indices):

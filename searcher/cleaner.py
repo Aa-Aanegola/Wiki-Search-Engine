@@ -8,12 +8,7 @@ class Cleaner:
         self.stopwords = set(stopwords.words('english'))
 
     def clean(self, text):
-        text = text.lower()
-        text = re.sub(r'http[^ ]*\ ', r' ', text)
-        text = re.sub(r'&lt|&gt|&amp|&quot|&apos|&nbsp', r' ', text)
-        text = re.sub(r'\'', '', text)
-        text = re.sub(r'[^a-z0-9 ]', r' ', text)
-        tokens = text.split()
-        tokens_nostop = [word for word in tokens if word not in self.stopwords]
-        ret = self.stemmer.stemWords(tokens_nostop)
+        token = text.lower()
+        tokens_nostop = ["" if token in self.stopwords else token]
+        ret = self.stemmer.stemWords(tokens_nostop)[0]
         return ret
