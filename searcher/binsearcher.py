@@ -1,25 +1,40 @@
 import json
 from collections import defaultdict
 import re
+from math import log
 
 class BinSearcher:
-    def __init__(self, index_dir, cleaner):
+    def __init__(self, index_dir, cleaner, num_docs):
         self.index_dir = index_dir
         self.cleaner = cleaner
         f = open(f'{index_dir}/library.txt', 'r')
         self.indices = [line.strip() for line in f]
         f.close()  
         self.expand = {'t':'title', 'b':'body', 'i':'infobox', 'c':'categories', 'r':'references', 'l':'links'}
+        self.weights = {'t':5, 'i':3, 'b':1, 'c':2, 'r':0.5, 'l':0.5}
+        self.num_docs = num_docs
+        self.map = defaultdict(float)
         
     def get_word(self, token):
+        select = 'a'
         if len(token) > 2 and token[1] == ':':
             return token[2:]
-        return token
+        return select, token
         
-    def get_list(self, token):
-        if len(token) > 2 and token[1] == ':':
-            token = token[2:]
-        
+    def parse(self, posting):
+        sel = 'id'
+        prev = 0
+        dic = defaultdict()
+        for i in range(len(posting)):
+            if posting[i].isdigit():
+                continue
+            dic[sel] = int(posting[prev:i])
+            sel = posting[i]
+            prev = i+1
+        dic[sel] = int(posting[prev:len(posting)]) 
+        return dic    
+    
+    def set_list(self, select, token):
         token = self.cleaner.clean(token)
         if not len(token):
             return []
@@ -35,41 +50,48 @@ class BinSearcher:
         
         l = 0 
         r = len(index)-1
+        mid = -1
         
         while l <= r:
             mid = int((l+r)/2)
             line = index[mid]
             if line[0] == token:
-                return line[1:]
+                break
             elif line[0] < token:
                 l = mid+1
             else:
                 r = mid-1
-        return []
+        if l>r:
+            return
     
-    def clean_map(self, map):
-        master = {}
-        for token in map.keys():
-            temp = {}
-            ids = [int(re.sub(r'([0-9]*).*', r'\1', word)) for word in map[token]]
-            for label in ['t', 'b', 'i', 'c', 'r', 'l']:
-                dat = [re.sub(r'.*%c([0-9]*).*' % label, r'\1', word) for word in map[token]]
-                for i in range(len(dat)):
-                    if dat[i] == map[token][i]:
-                        dat[i] = ''
-                ret = []
-                for i in range(len(ids)):
-                    if dat[i]:
-                        ret.append(ids[i])
-                temp[self.expand[label]] = ret
-            master[token] = temp
-        print(json.dumps(master, indent=4))
+        line = index[mid][1:]
+        idf = log(self.num_docs/len(line))
+        for posting in line:
+            if select not in posting and select != 'a':
+                continue
+            dic = self.parse(posting)
+            tf = 0
+            for key in dic.keys():
+                if key == 'id':
+                    continue
+                tf += self.weights[key] * dic[key]
+            tf = log(1+tf)
+            self.map[dic['id']] += tf 
+    
     
     def search(self, search_str):
         search_str = search_str.lower()
         tokens = search_str.split()
-        map = defaultdict(list)
         for token in tokens:
-            map[self.get_word(token)] = self.get_list(token)
+            select, temp = self.get_word(token)
+            self.set_list(select, temp)
+            
+        top_res = sorted(self.map.items(), key=lambda kv: kv[1], reverse=True)[:10]
         
-        self.clean_map(map)
+        res = []
+        for item in top_res:
+            f = open(f'./{self.index_dir}/titles{item[0]//100000+1}.txt', 'r')
+            titles = f.readlines()
+            res.append(titles[item[0]%100000].strip())
+            f.close()
+        print(res)

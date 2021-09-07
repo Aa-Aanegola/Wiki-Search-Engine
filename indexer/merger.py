@@ -82,7 +82,6 @@ class Merger:
         fp = open(f'{self.index_dir}/master_index.txt', "r")
         out = open(f'{self.index_dir}/invindex{current}.txt', "w")
         ends = open(f'{self.index_dir}/library.txt', "w")
-        stat = open(f'./invertedindex_stat.txt', 'a')
         total_count = 0
         while not fp.closed:
             line = fp.readline().strip() + '\n'
@@ -99,9 +98,6 @@ class Merger:
                 current += 1
                 out = open(f'{self.index_dir}/invindex{current}.txt', "w")
         
-        total_count += count % 100000
-        total_count = str(total_count) + '\n'
-        stat.write(total_count)
         ends.close()
         fp.close()
         os.remove(f'{self.index_dir}/master_index.txt')

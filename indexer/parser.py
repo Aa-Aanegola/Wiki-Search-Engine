@@ -16,6 +16,7 @@ class Handler(sx.ContentHandler):
         self.page_ind = defaultdict()
         self.wordset = set()
         self.index_dir = index_dir
+        self.titles = []
 
     def add_page(self, page=None, force_write=False):
         if page:
@@ -46,7 +47,16 @@ class Handler(sx.ContentHandler):
             f = open(f'{self.index_dir}/index{int((self.pages+9999)/10000)}.txt', "w")
             f.write(file)
             self.inv_index.clear()
-                
+        if self.pages % 100000 == 0 or force_write:
+            f = open(f'{self.index_dir}/titles{int((self.pages+99999)/100000)}.txt', 'w')
+            f.write(' '.join(self.titles))
+            self.titles.clear()
+        
+        if force_write:
+            f = open(f'{self.index_dir}/numdocs.txt', 'w')
+            f.write(str(self.pages))
+        
+
     def count_words(self, page, title):
         page_ls = page.lower().split()
         title_ls = title.lower().split()
@@ -65,14 +75,16 @@ class Handler(sx.ContentHandler):
         if tag == 'page':# and self.printed:
             self.body = ' '.join(self.body)
             self.title = ' '.join(self.title)
-
+            
+            self.titles.append(self.title.lower())
+            
             body, infobox, cat, ref, links = self.cleaner.chunk(self.body)
             title = self.cleaner.clean(self.title)
 
             page = {"title":title, "body":body, "infobox":infobox, 
                     "categories":cat, "references":ref, "links":links}
             
-            self.count_words(self.body, self.title)
+            #self.count_words(self.body, self.title)
             
             self.pages += 1
             self.add_page(page=page)
