@@ -20,8 +20,6 @@ class CleanerChunker:
         tokens = text.split()
         tokens_nostop = [word for word in tokens if word not in self.stopwords]
         ret = self.stemmer.stemWords(tokens_nostop)
-        del tokens
-        del tokens_nostop
         return ret
     
     def get_body(self, text):
@@ -39,7 +37,6 @@ class CleanerChunker:
                 i += 1
             prev = i
         body.append(text[prev:])
-        del prev
         return self.clean(' '.join(body))
     
     def get_infobox(self, text):
@@ -86,7 +83,6 @@ class CleanerChunker:
         res = re.search(r'==\ *references\ *==', text)
         if res:
             chunks = (text[:res.start()], text[res.start():])
-        del text
         return self.get_body(chunks[0]), \
             self.get_infobox(chunks[0]), \
             self.get_categories(chunks[1]), \

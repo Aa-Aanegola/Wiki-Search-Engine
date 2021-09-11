@@ -2,6 +2,7 @@ import time
 import xml.sax as sx
 from cleaner import *
 from memory_profiler import profile
+from collections import defaultdict
 
 class Handler(sx.ContentHandler):
     def __init__(self, index_dir):
@@ -14,23 +15,21 @@ class Handler(sx.ContentHandler):
         self.index_dir = index_dir
         self.titles = []
         self.keys = ['T', 'I', 'B', 'C', 'R', 'L']
-        self.inv_index = {}
+        self.inv_index = defaultdict(list)
         
     def add_page(self, page=None, force_write=False):
         if page:
             c = 0
-            ind = {}
+            ind = defaultdict()
             words = set()
             for key in page.keys():
-                temp = {}
-                has = {}
+                temp = defaultdict(int)
+                has = defaultdict(int)
                 for word in page[key]:
                     flag = False
                     if len(word) > 15:
                         flag = True
                     for letter in word:
-                        if letter not in has.keys():
-                            has[letter] = 0
                         has[letter] += 1
                     for key in has.keys():
                         if has[key] > 5:
@@ -38,26 +37,18 @@ class Handler(sx.ContentHandler):
                     has.clear()
                     if flag:
                         continue
-                    if word not in temp.keys():
-                        temp[word] = 0
                     temp[word] += 1
                     words.add(word)
                 ind[self.keys[c]] = temp
                 c += 1
-                del temp
-                del has
                 
             for word in words:
                 encoding = str(hex(self.pages))[2:]
                 for key in ind.keys():
                     if word in ind[key].keys():
                         encoding += key + str(hex(ind[key][word]))[2:]
-                if word not in self.inv_index.keys():
-                    self.inv_index[word] = []
                 self.inv_index[word].append(encoding)
-                del encoding
-            del ind
-            del words
+                
             
         if self.pages % 10000 == 0 or force_write:
             f = open(f'{self.index_dir}/index{int((self.pages+9999)/10000)}.txt', "w")
@@ -66,13 +57,11 @@ class Handler(sx.ContentHandler):
                 f.write(data)
             self.inv_index.clear()
             f.close()
-            del f
             
             
         if self.pages % 10000 == 0 or force_write:
             f = open(f'{self.index_dir}/titles{int((self.pages+9999)/10000)}.txt', 'w')
             f.write(' '.join(self.titles))
-            del self.titles
             self.titles = []
             f.close()
         
@@ -103,14 +92,6 @@ class Handler(sx.ContentHandler):
             self.title = []
             self.body = []
             self.id = None
-
-            del title
-            del body
-            del infobox
-            del cat
-            del ref
-            del links
-            del page
             
             if self.pages % 1000 == 0:  
                 print(f"Successfully parsed {self.pages} pages", flush=True)
