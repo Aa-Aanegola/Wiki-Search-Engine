@@ -16,6 +16,6 @@ if not os.path.isdir(f'{sys.argv[2]}'):
 print("Currently parsing...")
 parser.parse(dc)
 print('\nCurrently merging...')
-merger = Merger(6, sys.argv[2])
+merger = Merger(handler.get_file_count(), sys.argv[2])
 merger.create_index()
 print(f"\nTotal time taken: {time.time() - st}")

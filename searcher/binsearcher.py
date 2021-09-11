@@ -2,6 +2,7 @@ import json
 from collections import defaultdict
 import re
 from math import log
+import time
 
 class BinSearcher:
     def __init__(self, index_dir, cleaner, num_docs):
@@ -10,15 +11,14 @@ class BinSearcher:
         f = open(f'{index_dir}/library.txt', 'r')
         self.indices = [line.strip() for line in f]
         f.close()  
-        self.expand = {'t':'title', 'b':'body', 'i':'infobox', 'c':'categories', 'r':'references', 'l':'links'}
-        self.weights = {'t':5, 'i':3, 'b':1, 'c':2, 'r':0.5, 'l':0.5}
+        self.weights = {'T':5, 'I':3, 'B':1, 'C':2, 'R':0.5, 'L':0.5}
         self.num_docs = num_docs
         self.map = defaultdict(float)
         
     def get_word(self, token):
-        select = 'a'
+        select = 'A'
         if len(token) > 2 and token[1] == ':':
-            return token[2:]
+            return token[0], token[2:]
         return select, token
         
     def parse(self, posting):
@@ -26,13 +26,13 @@ class BinSearcher:
         prev = 0
         dic = defaultdict()
         for i in range(len(posting)):
-            if posting[i].isdigit():
+            if posting[i].isdigit() or (posting[i]>='a' and posting[i]<='f'):
                 continue
-            dic[sel] = int(posting[prev:i])
+            dic[sel] = int(posting[prev:i], 16)
             sel = posting[i]
             prev = i+1
-        dic[sel] = int(posting[prev:len(posting)]) 
-        return dic    
+        dic[sel] = int(posting[prev:len(posting)], 16) 
+        return dic
     
     def set_list(self, select, token):
         token = self.cleaner.clean(token)
@@ -67,7 +67,7 @@ class BinSearcher:
         line = index[mid][1:]
         idf = log(self.num_docs/len(line))
         for posting in line:
-            if select not in posting and select != 'a':
+            if select not in posting and select != 'A':
                 continue
             dic = self.parse(posting)
             tf = 0
@@ -80,6 +80,7 @@ class BinSearcher:
     
     
     def search(self, search_str):
+        self.map = defaultdict(float)
         search_str = search_str.lower()
         tokens = search_str.split()
         for token in tokens:
@@ -90,8 +91,24 @@ class BinSearcher:
         
         res = []
         for item in top_res:
-            f = open(f'./{self.index_dir}/titles{item[0]//100000+1}.txt', 'r')
+            f = open(f'./{self.index_dir}/titles{item[0]//10000+1}.txt', 'r')
             titles = f.readlines()
-            res.append(titles[item[0]%100000].strip())
+            res.append((item[0], titles[(item[0]-1)%10000].strip()))
             f.close()
-        print(res)
+        return res
+
+    def master_search(self, search_file):
+        f = open(search_file, 'r')
+        queries = f.readlines()
+        f.close()
+        out = open('./queries_out.txt', 'w')
+        for query in queries:
+            start = time.time()
+            res = self.search(query.strip())
+            total = time.time() - start
+            for item in res:
+                data = str(item[0]) + ', ' + str(item[1]) + '\n'
+                out.write(data)
+            data = str(total) + '\n\n'
+            out.write(data)
+        out.close()

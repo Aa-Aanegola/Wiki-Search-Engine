@@ -1,5 +1,4 @@
 import os
-from collections import defaultdict
 import re
 
 class Merger:
@@ -63,7 +62,7 @@ class Merger:
         files = [f'{self.index_dir}/index{i+1}.txt' for i in range(self.inv_ind_count)]
         
         while len(files) > 1:
-            print(f"Merging {len(files)} files", end='\r')
+            print(f"Merging {len(files)} files", flush=True)
             nx_files = []
             for i in range(0, len(files)-1, 2):
                 nx_files.append(self.merge_files(files[i], files[i+1]))

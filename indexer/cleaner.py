@@ -4,8 +4,13 @@ import re
 
 class CleanerChunker:
     def __init__(self):
-        self.stemmer = Stemmer('english')
+        self.stemmer = Stemmer('english', maxCacheSize=0)
         self.stopwords = set(stopwords.words('english'))
+        extra_stops = set(['cite', 'https', 'http', 'com', 'url', 'categori'
+                                'ref', 'reflist', 'title', 'name', 'author', 
+                                'data', 'also', 'link', 'org', 'publish', 'websit',
+                                'caption', 'imag', 'infobox', 'wiki'])
+        self.stopwords = set.union(self.stopwords, extra_stops)
 
     def clean(self, text):
         text = text.lower()
@@ -15,6 +20,8 @@ class CleanerChunker:
         tokens = text.split()
         tokens_nostop = [word for word in tokens if word not in self.stopwords]
         ret = self.stemmer.stemWords(tokens_nostop)
+        del tokens
+        del tokens_nostop
         return ret
     
     def get_body(self, text):
@@ -32,6 +39,7 @@ class CleanerChunker:
                 i += 1
             prev = i
         body.append(text[prev:])
+        del prev
         return self.clean(' '.join(body))
     
     def get_infobox(self, text):
@@ -78,7 +86,7 @@ class CleanerChunker:
         res = re.search(r'==\ *references\ *==', text)
         if res:
             chunks = (text[:res.start()], text[res.start():])
-        
+        del text
         return self.get_body(chunks[0]), \
             self.get_infobox(chunks[0]), \
             self.get_categories(chunks[1]), \

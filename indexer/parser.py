@@ -1,7 +1,7 @@
 import time
 import xml.sax as sx
 from cleaner import *
-from collections import defaultdict
+from memory_profiler import profile
 
 class Handler(sx.ContentHandler):
     def __init__(self, index_dir):
@@ -10,69 +10,82 @@ class Handler(sx.ContentHandler):
         self.current = ''
         self.id = None
         self.cleaner = CleanerChunker()
-        #self.printed = 10
         self.pages = 0
-        self.inv_index = defaultdict(list)
-        self.page_ind = defaultdict()
-        self.wordset = set()
         self.index_dir = index_dir
         self.titles = []
-
+        self.keys = ['T', 'I', 'B', 'C', 'R', 'L']
+        self.inv_index = {}
+        
     def add_page(self, page=None, force_write=False):
         if page:
-            keys = ['t', 'b', 'i', 'c', 'r', 'l']
             c = 0
-            ind = defaultdict()
+            ind = {}
             words = set()
             for key in page.keys():
-                temp = defaultdict(int)
+                temp = {}
+                has = {}
                 for word in page[key]:
+                    flag = False
+                    if len(word) > 15:
+                        flag = True
+                    for letter in word:
+                        if letter not in has.keys():
+                            has[letter] = 0
+                        has[letter] += 1
+                    for key in has.keys():
+                        if has[key] > 5:
+                            flag = True
+                    has.clear()
+                    if flag:
+                        continue
+                    if word not in temp.keys():
+                        temp[word] = 0
                     temp[word] += 1
                     words.add(word)
-                ind[keys[c]] = temp
+                ind[self.keys[c]] = temp
                 c += 1
-            self.page_ind[self.pages] = self.id
-            
+                del temp
+                del has
+                
             for word in words:
-                encoding = str(self.pages)
+                encoding = str(hex(self.pages))[2:]
                 for key in ind.keys():
-                    if ind[key][word]:
-                        encoding += key + str(ind[key][word])
+                    if word in ind[key].keys():
+                        encoding += key + str(hex(ind[key][word]))[2:]
+                if word not in self.inv_index.keys():
+                    self.inv_index[word] = []
                 self.inv_index[word].append(encoding)
+                del encoding
+            del ind
+            del words
+            
         if self.pages % 10000 == 0 or force_write:
-            file = ""
+            f = open(f'{self.index_dir}/index{int((self.pages+9999)/10000)}.txt', "w")
             for key in sorted(self.inv_index.keys()):
                 data = key + ' ' + ' '.join(self.inv_index[key]) + '\n'
-                file += data
-            f = open(f'{self.index_dir}/index{int((self.pages+9999)/10000)}.txt', "w")
-            f.write(file)
+                f.write(data)
             self.inv_index.clear()
-        if self.pages % 100000 == 0 or force_write:
-            f = open(f'{self.index_dir}/titles{int((self.pages+99999)/100000)}.txt', 'w')
+            f.close()
+            del f
+            
+            
+        if self.pages % 10000 == 0 or force_write:
+            f = open(f'{self.index_dir}/titles{int((self.pages+9999)/10000)}.txt', 'w')
             f.write(' '.join(self.titles))
-            self.titles.clear()
+            del self.titles
+            self.titles = []
+            f.close()
         
         if force_write:
             f = open(f'{self.index_dir}/numdocs.txt', 'w')
             f.write(str(self.pages))
-        
-
-    def count_words(self, page, title):
-        page_ls = page.lower().split()
-        title_ls = title.lower().split()
-        for word in page_ls:
-            self.wordset.add(word)
-        for word in title_ls:
-            self.wordset.add(word)
-            
-    def get_word_count(self):
-        return len(self.wordset)
+            f.close()
 
     def startElement(self, tag, attributes):
         self.current = tag
         
     def endElement(self, tag):
-        if tag == 'page':# and self.printed:
+        if tag == 'page':
             self.body = ' '.join(self.body)
             self.title = ' '.join(self.title)
             
@@ -84,18 +97,23 @@ class Handler(sx.ContentHandler):
             page = {"title":title, "body":body, "infobox":infobox, 
                     "categories":cat, "references":ref, "links":links}
             
-            #self.count_words(self.body, self.title)
-            
             self.pages += 1
             self.add_page(page=page)
             
             self.title = []
             self.body = []
             self.id = None
-            #self.printed -= 1
-        
-            if self.pages % 1000 == 0:
-                print(f"Successfully parsed {self.pages} pages", end="\r")
+
+            del title
+            del body
+            del infobox
+            del cat
+            del ref
+            del links
+            del page
+            
+            if self.pages % 1000 == 0:  
+                print(f"Successfully parsed {self.pages} pages", flush=True)
         if tag == 'mediawiki':
             self.add_page(force_write=True)
         
