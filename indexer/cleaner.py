@@ -4,7 +4,7 @@ import re
 
 class CleanerChunker:
     def __init__(self):
-        self.stemmer = Stemmer('english', maxCacheSize=0)
+        self.stemmer = Stemmer('english')
         self.stopwords = set(stopwords.words('english'))
         extra_stops = set(['cite', 'https', 'http', 'com', 'url', 'categori'
                                 'ref', 'reflist', 'title', 'name', 'author', 
