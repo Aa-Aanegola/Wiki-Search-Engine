@@ -13,7 +13,6 @@ class CleanerChunker:
         self.stopwords = set.union(self.stopwords, extra_stops)
 
     def clean(self, text):
-        text = text.lower()
         text = re.sub(r'http[^ ]*\ ', r' ', text)
         text = re.sub(r'&lt|&gt|&amp|&quot|&apos|&nbsp', r' ', text)
         text = re.sub(r'[^a-z0-9 ]', r' ', text)
@@ -79,12 +78,13 @@ class CleanerChunker:
     
     def chunk(self, text):
         text = text.lower()
-        chunks = (text, "")
-        res = re.search(r'==\ *references\ *==', text)
-        if res:
-            chunks = (text[:res.start()], text[res.start():])
-        return self.get_body(chunks[0]), \
-            self.get_infobox(chunks[0]), \
-            self.get_categories(chunks[1]), \
-            self.get_references(chunks[1]), \
-            self.get_links(chunks[1])
+        chunks = re.split(r'==\ *references\ *==', text, maxsplit=1)
+        if len(chunks) == 1:
+            chunks.append("")
+        body = self.get_body(chunks[0])
+        infobox = self.get_infobox(chunks[0])
+        categories = self.get_categories(chunks[1])
+        references = self.get_references(chunks[1])
+        links = self.get_links(chunks[1])
+        
+        return body, infobox, categories, references, links

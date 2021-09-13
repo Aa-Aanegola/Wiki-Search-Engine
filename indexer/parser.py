@@ -50,8 +50,8 @@ class Handler(sx.ContentHandler):
                 self.inv_index[word].append(encoding)
                 
             
-        if self.pages % 10000 == 0 or force_write:
-            f = open(f'{self.index_dir}/index{int((self.pages+9999)/10000)}.txt', "w")
+        if self.pages % 50000 == 0 or force_write:
+            f = open(f'{self.index_dir}/index{int((self.pages+49999)/50000)}.txt', "w")
             for key in sorted(self.inv_index.keys()):
                 data = key + ' ' + ' '.join(self.inv_index[key]) + '\n'
                 f.write(data)
@@ -59,8 +59,8 @@ class Handler(sx.ContentHandler):
             f.close()
             
             
-        if self.pages % 10000 == 0 or force_write:
-            f = open(f'{self.index_dir}/titles{int((self.pages+9999)/10000)}.txt', 'w')
+        if self.pages % 50000 == 0 or force_write:
+            f = open(f'{self.index_dir}/titles{int((self.pages+49999)/50000)}.txt', 'w')
             f.write(' '.join(self.titles))
             self.titles = []
             f.close()
@@ -75,6 +75,13 @@ class Handler(sx.ContentHandler):
         
     def endElement(self, tag):
         if tag == 'page':
+            if self.pages>19956000 and self.pages < 19957000:
+                self.title = []
+                self.body = []
+                self.id = None
+                self.pages += 1
+                return
+            
             self.body = ' '.join(self.body)
             self.title = ' '.join(self.title)
             
@@ -82,7 +89,7 @@ class Handler(sx.ContentHandler):
             
             body, infobox, cat, ref, links = self.cleaner.chunk(self.body)
             title = self.cleaner.clean(self.title)
-
+    
             page = {"title":title, "body":body, "infobox":infobox, 
                     "categories":cat, "references":ref, "links":links}
             
@@ -100,11 +107,11 @@ class Handler(sx.ContentHandler):
         
     def characters(self, content):
         if self.current == 'id' and not self.id:
-            self.id = content
+            self.id = int(content)
         elif self.current == 'text':
             self.body.append(content)
         elif self.current == 'title':
             self.title.append(content)
         
     def get_file_count(self):
-        return int((self.pages+9999)/10000)
+        return int((self.pages+49999)/50000)

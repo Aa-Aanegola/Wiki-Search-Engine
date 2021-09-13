@@ -18,8 +18,8 @@ class BinSearcher:
     def get_word(self, token):
         select = 'A'
         if len(token) > 2 and token[1] == ':':
-            return token[0], token[2:]
-        return select, token
+            return token[0].upper(), token[2:]
+        return select.upper(), token
         
     def parse(self, posting):
         sel = 'id'
@@ -65,6 +65,7 @@ class BinSearcher:
             return
     
         line = index[mid][1:]
+        print(token, len(line))
         idf = log(self.num_docs/len(line))
         for posting in line:
             if select not in posting and select != 'A':
@@ -74,7 +75,8 @@ class BinSearcher:
             for key in dic.keys():
                 if key == 'id':
                     continue
-                tf += self.weights[key] * dic[key]
+                if select == 'A' or key == select:
+                    tf += self.weights[key] * dic[key]
             tf = log(1+tf)
             self.map[dic['id']] += tf 
     
@@ -91,9 +93,9 @@ class BinSearcher:
         
         res = []
         for item in top_res:
-            f = open(f'./{self.index_dir}/titles{item[0]//10000+1}.txt', 'r')
+            f = open(f'./{self.index_dir}/titles{item[0]//50000+1}.txt', 'r')
             titles = f.readlines()
-            res.append((item[0], titles[(item[0]-1)%10000].strip()))
+            res.append((item[0], titles[(item[0]-1)%50000].strip()))
             f.close()
         return res
 
@@ -109,6 +111,8 @@ class BinSearcher:
             for item in res:
                 data = str(item[0]) + ', ' + str(item[1]) + '\n'
                 out.write(data)
+            if len(res) == 0:
+                out.write("No matches found.\n")
             data = str(total) + '\n\n'
             out.write(data)
         out.close()
