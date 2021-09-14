@@ -74,14 +74,7 @@ class Handler(sx.ContentHandler):
         self.current = tag
         
     def endElement(self, tag):
-        if tag == 'page':
-            if self.pages>19956000 and self.pages < 19957000:
-                self.title = []
-                self.body = []
-                self.id = None
-                self.pages += 1
-                return
-            
+        if tag == 'page':     
             self.body = ' '.join(self.body)
             self.title = ' '.join(self.title)
             
