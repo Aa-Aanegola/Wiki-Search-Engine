@@ -14,7 +14,6 @@ class Handler(sx.ContentHandler):
         self.pages = 0
         self.index_dir = index_dir
         self.titles = []
-        self.keys = ['T', 'I', 'B', 'C', 'R', 'L']
         self.inv_index = defaultdict(list)
         
     def add_page(self, page=None, force_write=False):
@@ -31,15 +30,15 @@ class Handler(sx.ContentHandler):
                         flag = True
                     for letter in word:
                         has[letter] += 1
-                    for key in has.keys():
-                        if has[key] > 5:
+                    for tk in has.keys():
+                        if has[tk] > 5:
                             flag = True
                     has.clear()
                     if flag:
                         continue
                     temp[word] += 1
                     words.add(word)
-                ind[self.keys[c]] = temp
+                ind[key] = temp
                 c += 1
                 
             for word in words:
@@ -83,8 +82,8 @@ class Handler(sx.ContentHandler):
             body, infobox, cat, ref, links = self.cleaner.chunk(self.body)
             title = self.cleaner.clean(self.title)
     
-            page = {"title":title, "body":body, "infobox":infobox, 
-                    "categories":cat, "references":ref, "links":links}
+            page = {"T":title, "B":body, "I":infobox, 
+                    "C":cat, "R":ref, "L":links}
             
             self.pages += 1
             self.add_page(page=page)
