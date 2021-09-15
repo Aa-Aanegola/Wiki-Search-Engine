@@ -78,7 +78,9 @@ class BinSearcher:
                 if select == 'A' or key == select:
                     tf += self.weights[key] * dic[key]
             tf = log(1+tf)
-            self.map[dic['id']] += tf 
+            if abs(tf) > 0.001:
+                tf += 1e9
+            self.map[dic['id']] += tf*idf
     
     
     def search(self, search_str):
@@ -88,7 +90,6 @@ class BinSearcher:
         for token in tokens:
             select, temp = self.get_word(token)
             self.set_list(select, temp)
-            
         top_res = sorted(self.map.items(), key=lambda kv: kv[1], reverse=True)[:10]
         
         res = []

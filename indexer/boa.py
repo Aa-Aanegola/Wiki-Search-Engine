@@ -59,8 +59,11 @@ class Constrictor:
                 flag = False
                 for key in dic.keys():
                     if counts[key] < 10000:
-                        to_d.append(posting)
+                        flag = True
                         counts[key] += 1
+                if flag:
+                    to_d.append(posting)
+
             to_d_str = ' '.join(to_d) + '\n'
             new.write(to_d_str)
         new.close()
