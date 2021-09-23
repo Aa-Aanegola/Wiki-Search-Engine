@@ -1,5 +1,5 @@
 # Wiki-Search-Engine
-** A python based implementation of an indexer and search engine intended to be used in tandem with wikipedia dumps. **
+**A python based implementation of an indexer and search engine intended to be used in tandem with wikipedia dumps.**
 
 ## The indexer
 The indexer creates an inverted index for the wikipedia dump provided. The xml file is parsed using the sax parser for which I created a custom content handler. The indexer takes around 11 hours to parse, merge and resplit an 80GB wikipedia dump, which is remarkably fast.
